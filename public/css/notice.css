@@ -1,0 +1,16 @@
+body {
+    display: flex;
+    align-items: center;
+    padding-top: 90px;
+    padding-bottom: 40px;
+    background-color:#697DC2;
+  }
+  .viewc {
+    width: 100%;
+    max-width: 90%;
+    padding: 20px;
+    margin: 100px 50px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.308);
+  }

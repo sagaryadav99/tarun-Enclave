@@ -1,0 +1,145 @@
+h1, h2, h3{
+    font-family: 'Montserrat', sans-serif;
+}
+h1 {
+    letter-spacing: 3px;
+  }
+.heading{
+    text-align: center;
+    padding: 70px;
+}
+.navbar-brand{
+    padding-left:8px;
+}
+#title{
+    background-color: #3F4C75;
+    color: #fff;
+    padding: 10px;
+
+}
+#images_heading{
+    background-color: #697DC2;
+    
+    text-align: center;
+}
+.imagesize{
+    height: 400px;
+    width: 800px;
+    border-radius: 10px;
+}
+.carousel-item{
+    padding: 2% 10% 10%;
+}
+#notices{
+    border:2% 10% 40%;
+    padding: 10px 100px 30px;
+    background-color: #a4b7d6;
+    color: #fff;
+    text-align: left;
+}
+.noticesection{
+    border-right: #bfd3e7 3px solid;
+}
+.noticesection h2{
+    text-align: center;
+}
+.announcementsection h2{
+    text-align: center;
+}
+#messagesi{
+    background-color: #F5C99D;
+    padding: 5% 10% 10%;
+    text-align: left;
+}
+.imagemessage{
+    height:90px;
+    width: 70px;
+    border-radius: 7px;
+}
+.messagebox{
+    box-shadow: 1px 2px 2px 1px rgba(0, 0, 0, 0.308);
+    width: 320px;
+    margin:0 10px;
+    
+    padding: 5%;
+}
+.panel{
+    
+    display: none;
+}
+h4{
+margin-bottom: 0;
+}
+h6{
+    text-align: left;
+}
+#footer{
+    padding: 3% 15%;
+    text-align: center;
+    background-color:#212529;
+}
+.footerlink{
+    padding:2px;
+    color:#fff;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+select,
+textarea{
+    background-color: white;
+    padding: 8px;
+    border: 1px solid black;
+    border-radius: 8px;
+
+}
+
+fieldset{
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 9px;
+}
+
+
+
+input[type="submit"]{
+    background-color: cadetblue;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+
+
+
+
+    
+    
