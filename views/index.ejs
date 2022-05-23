@@ -79,7 +79,7 @@
             <h2>NOTICE</h2>
             <ul>
               <% posts.slice().reverse().forEach(function(post){ %>
-                <li><p><%= post.title %>: <%= post.body.substring(0,100) + "..." %><a href="/posts/<%= post.title %>">Read more</a></p></li>
+                <li><p><%= post.ntitle %>: <%= post.nbody.substring(0,100) + "..." %><a href="/posts/<%= post.ntitle %>">Read more</a></p></li>
                   <% }) %>
              
             </ul>
@@ -95,7 +95,7 @@
             <ul>
               
               <% anns.slice().reverse().forEach(function(ann){ %>
-                <li><%= ann.title %></li>
+                <li><%= ann.abody %></li>
                   <% }) %>
             </ul>
         </div>
