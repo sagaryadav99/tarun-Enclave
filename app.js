@@ -326,6 +326,9 @@ app.get("/viewvisitor/:resiflname",function(req,res){
 }
 });
 
+app.get("/chatbot",function(req,res){
+    res.render("chatbot.ejs");
+})
 
 
 app.get("/notice",function(req,res){
