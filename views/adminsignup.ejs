@@ -18,9 +18,9 @@
 <body>
   <%- include ("partials/navbar") -%>
     <div class="form-signin">
-        <form action="/signup" method="post">
+        <form action="/adminsignup" method="post">
           
-          <h1 class="h1 mb-3 fw-normal">Resident SignUp</h1>
+          <h1 class="h1 mb-3 fw-normal">Admin SignUp</h1>
 
           <div class="row">      
           <div class="form-floating col-lg-6 ">
@@ -34,40 +34,7 @@
           </div>
         </div>
         
-          <div class="row">
-              <div class="col-lg-12">
-          <fieldset>
-            <legend>Gender</legend>
-        <p>
-           <input type="radio" name="gender"  value="Male" required>Male&nbsp;&nbsp;
-           <input type="radio" name="gender" value="Female" required>Female&nbsp;&nbsp;
-           <input type="radio" name="gender" value="Other" required>Other&nbsp;&nbsp;
-        </p>
-        </fieldset>
-    </div>
-    </div>
-    <div class="row">      
-        <div class="form-floating col-lg-6 ">
-            
-          <input type="number" class="form-control" id="floatingInput" name="housenumber" placeholder="house number" required>
-          <label for="floatingInput">House number</label>
-        </div>
-        <div class="form-floating col-lg-6">
-          <!-- <input type="text" class="form-control" id="floatingPassword" placeholder="last name">
-          <label for="floatingPassword">Last name</label> -->
           
-            <select class="flooroption form-control" name="Floor_number" placeholder="Floor" required>
-                
-                <option value="">Floor</option>
-                <option value="First_Floor">1</option>
-                <option value="Second_Floor">2</option>
-                <option value="Third_Floor">3</option>
-                <option value="Fourth_Floor">4</option>
-
-            </select>
-        
-        </div>
-      </div>
       <div class="row">
       <div class="form-floating col-lg-12 ">
               

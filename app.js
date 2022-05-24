@@ -4,6 +4,9 @@ const ejs=require("ejs");
 const _ =require("lodash");
 const replaceStr = require("./public/javascript/javascript.js");
 const mongoose=require("mongoose");
+const session=require("express-session");
+const passport=require("passport");
+const passportLocalMongoose=require("passport-local-mongoose");
 
 
 const app=express();
@@ -23,7 +26,51 @@ app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
+
+app.use(session({
+    secret: "ourlittlesecret",
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 mongoose.connect("mongodb://localhost:27017/TarunEnclaveDB");
+
+const userSchema=new mongoose.Schema({
+    fname:String,
+    lname:String,
+    gender:String,
+    housenumber:Number,
+    Floor_number:String,
+    email:String,
+    password:String
+    
+});
+
+const adminSchema=new mongoose.Schema({
+    fname:String,
+    lname:String,
+    email:String,
+    password:String
+
+});
+
+// adminSchema.plugin(passportLocalMongoose);
+userSchema.plugin(passportLocalMongoose);
+
+const User= new mongoose.model("User",userSchema);
+// const Admin=new mongoose.model("Admin",adminSchema);
+
+passport.use(User.createStrategy());
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+// passport.use(Admin.createStrategy());
+// passport.serializeUser(Admin.serializeUser());
+// passport.deserializeUser(Admin.deserializeUser());
+
 
 
 const annSchema={
@@ -65,9 +112,6 @@ const comSchema={
 const Complaint=mongoose.model("Complaint",comSchema);
 
 
-
-
-
 app.get("/", function(req,res){
     
     Notice.find({},function(err,founditems){
@@ -104,6 +148,90 @@ app.get("/signin", function(req,res){
 app.get("/signup", function(req,res){
     res.render("signup.ejs")
 });
+
+app.get("/adminsignup", function(req,res){
+    res.render("adminsignup.ejs");
+});
+
+// app.post("/adminsignup", function(req,res){
+//     Admin.register({fname:req.body.fname,lname:req.body.lname,username:req.body.username}, req.body.password, function(err,admin){
+//         if(err){
+//             console.log(err);
+//             res.redirect("/adminsignup");
+        
+//         }else{
+//             passport.authenticate("local")(req,res, function(){
+//                 res.redirect("/adminlogin");
+//             });
+//         }
+//     });
+// });
+
+app.get("/adminlogin", function(req,res){
+    res.render("adminlogin.ejs");
+});
+
+// app.post("/adminlogin", function(req,res){
+//     const admin=new Admin({
+//         username:req.body.username,
+//         password:req.body.password
+//     });
+//     req.login(admin, function(err){
+//         if(err){
+//             console.log(err);
+//         }else{
+//             passport.authenticate("local")(req,res, function(){
+//                 res.redirect("/");
+//             });
+//         }
+//     });
+// })
+
+app.post("/signin", function(req, res){
+    const user=new User({
+        username:req.body.username,
+        password:req.body.password
+    });
+    req.login(user, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            passport.authenticate("local")(req,res, function(){
+                res.redirect("/");
+            });
+        }
+    });
+});
+
+app.post("/signup",function(req,res){
+
+
+    // var registerUser=new User({fname:req.body.fname,lname:req.body.lname,gender:req.body.housenumber,Floor_number:req.body.Floor_number,username:req.body.username});
+    // registerUser.register(registerUser,req.body.password, function(err, user){
+    //     if(!err){
+    //         passport.authenticate("local")(req,res, function(){
+    //             res.redirect("/signin");
+    //         });
+    //     }
+    // });
+    User.register({fname:req.body.fname,lname:req.body.lname,gender:req.body.housenumber,Floor_number:req.body.Floor_number,username:req.body.username}, req.body.password, function(err,user){
+        if(err){
+            console.log(err);
+            res.redirect("/signup");
+        
+        }else{
+            passport.authenticate("local")(req,res, function(){
+                res.redirect("/signin");
+            });
+        }
+    });
+});
+
+
+
+
+
+
 app.get("/complaint", function(req,res){
     res.render("complaint.ejs")
 });
@@ -138,9 +266,13 @@ app.post("/complaint",function(req,res){
 });
 app.get("/viewcomplaint", function(req,res){
     Complaint.find({},function(err,fitems){
-        res.render("viewcomplaint.ejs",{arrs:fitems})
-    });
-});
+     res.render("viewcomplaint.ejs",{arrs:fitems})
+            })
+        }
+        );
+    // Complaint.find({},function(err,fitems){
+    //     res.render("viewcomplaint.ejs",{arrs:fitems})
+
 
 
 app.post("/visitor",function(req,res){
@@ -173,9 +305,26 @@ app.post("/visitor",function(req,res){
 
 app.get("/viewvisitor", function(req,res){
     Visitor.find({},function(err,vitems){
-        res.render("viewvisitor.ejs",{vrs:vitems})
+        res.render("viewvisitor.ejs",{vrs:vitems});
     });
 });
+
+app.get("/viewvisitor/:resiflname",function(req,res){
+    Visitor.find({vresifname:req.params.resiflname}, function(err,vitems){
+        if(vitems){
+            // res.render("viewvisitor.ejs",{vrs:vitems});
+            c=vitems;
+            res.send(c);
+            
+            
+        }else{
+            res.send("no match found");
+        }
+        // res.render("viewvisitor.ejs",{vrs:c});
+        
+    });
+});
+
 
 
 app.get("/notice",function(req,res){
