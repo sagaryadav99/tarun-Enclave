@@ -45,31 +45,24 @@ const userSchema=new mongoose.Schema({
     housenumber:Number,
     Floor_number:String,
     email:String,
-    password:String
+    password:String,
+    role:String
     
 });
 
-const adminSchema=new mongoose.Schema({
-    fname:String,
-    lname:String,
-    email:String,
-    password:String
 
-});
 
-// adminSchema.plugin(passportLocalMongoose);
+
 userSchema.plugin(passportLocalMongoose);
 
 const User= new mongoose.model("User",userSchema);
-// const Admin=new mongoose.model("Admin",adminSchema);
+
 
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// passport.use(Admin.createStrategy());
-// passport.serializeUser(Admin.serializeUser());
-// passport.deserializeUser(Admin.deserializeUser());
+
 
 
 
@@ -113,10 +106,14 @@ const Complaint=mongoose.model("Complaint",comSchema);
 
 
 app.get("/", function(req,res){
+
+    if(req.isAuthenticated()){
+    
     
     Notice.find({},function(err,founditems){
     
     as=founditems;
+    
     
     // res.render("index.ejs",{posts:founditems});
     
@@ -129,6 +126,9 @@ app.get("/", function(req,res){
     
 
     res.render("index.ejs",{posts:as,anns:b});
+    }else{
+        res.redirect("/signin");
+    }
 
     // Notice.find({},function(err,founditems){
     //     res.render("index.ejs",{posts:founditems});
@@ -149,43 +149,15 @@ app.get("/signup", function(req,res){
     res.render("signup.ejs")
 });
 
-app.get("/adminsignup", function(req,res){
-    res.render("adminsignup.ejs");
-});
-
-// app.post("/adminsignup", function(req,res){
-//     Admin.register({fname:req.body.fname,lname:req.body.lname,username:req.body.username}, req.body.password, function(err,admin){
-//         if(err){
-//             console.log(err);
-//             res.redirect("/adminsignup");
-        
-//         }else{
-//             passport.authenticate("local")(req,res, function(){
-//                 res.redirect("/adminlogin");
-//             });
-//         }
-//     });
+// app.get("/adminsignup", function(req,res){
+//     res.render("adminsignup.ejs");
 // });
 
-app.get("/adminlogin", function(req,res){
-    res.render("adminlogin.ejs");
-});
+// app.get("/adminlogin", function(req,res){
+//     res.render("adminlogin.ejs");
+// });
 
-// app.post("/adminlogin", function(req,res){
-//     const admin=new Admin({
-//         username:req.body.username,
-//         password:req.body.password
-//     });
-//     req.login(admin, function(err){
-//         if(err){
-//             console.log(err);
-//         }else{
-//             passport.authenticate("local")(req,res, function(){
-//                 res.redirect("/");
-//             });
-//         }
-//     });
-// })
+
 
 app.post("/signin", function(req, res){
     const user=new User({
@@ -214,7 +186,7 @@ app.post("/signup",function(req,res){
     //         });
     //     }
     // });
-    User.register({fname:req.body.fname,lname:req.body.lname,gender:req.body.housenumber,Floor_number:req.body.Floor_number,username:req.body.username}, req.body.password, function(err,user){
+    User.register({fname:req.body.fname,lname:req.body.lname,housenumber:req.body.housenumber,Floor_number:req.body.Floor_number,username:req.body.username,role:"user"}, req.body.password, function(err,user){
         if(err){
             console.log(err);
             res.redirect("/signup");
@@ -227,16 +199,27 @@ app.post("/signup",function(req,res){
     });
 });
 
-
+app.get("/notauth",function(req,res){
+    res.render("notauth.ejs");
+})
 
 
 
 
 app.get("/complaint", function(req,res){
+    if(req.isAuthenticated()){
     res.render("complaint.ejs")
+    }else{
+        res.redirect("/signin");
+    }
 });
 app.get("/visitor", function(req,res){
+    if(req.isAuthenticated()){
     res.render("visitor.ejs")
+    }
+    else{
+        res.redirect("signin");
+    }
 });
 
 
@@ -261,14 +244,20 @@ app.post("/complaint",function(req,res){
         // Complaint.find({},function(err,fitems){
         // res.render("viewcomplaint.ejs",{arrs:fitems});
         // });
-        res.redirect("/viewcomplaint");
+        res.redirect("/");
         
 });
 app.get("/viewcomplaint", function(req,res){
-    Complaint.find({},function(err,fitems){
-     res.render("viewcomplaint.ejs",{arrs:fitems})
-            })
+    if(req.isAuthenticated()){
+        if(req.user.role==="admin"){
+            Complaint.find({},function(err,fitems){
+            res.render("viewcomplaint.ejs",{arrs:fitems})
+            });
         }
+        else{
+            res.redirect("/notauth");
+        }
+}}
         );
     // Complaint.find({},function(err,fitems){
     //     res.render("viewcomplaint.ejs",{arrs:fitems})
@@ -295,7 +284,7 @@ app.post("/visitor",function(req,res){
         visidescription:vdes
     });
     vis.save();
-    res.redirect("/viewvisitor");
+    res.redirect("/");
     // Visitor.find({},function(err,vitems){
     //     res.render("viewvisitor.ejs",{vrs:vitems})
     // });
@@ -304,12 +293,21 @@ app.post("/visitor",function(req,res){
 });
 
 app.get("/viewvisitor", function(req,res){
-    Visitor.find({},function(err,vitems){
-        res.render("viewvisitor.ejs",{vrs:vitems});
-    });
+    if(req.isAuthenticated()){
+        if(req.user.role==="admin"){
+        Visitor.find({},function(err,vitems){
+            res.render("viewvisitor.ejs",{vrs:vitems});
+        });
+    }
+    else{
+        res.redirect("/notauth");
+    }
+}
+    
 });
 
 app.get("/viewvisitor/:resiflname",function(req,res){
+    if(req.isAuthenticated()){
     Visitor.find({vresifname:req.params.resiflname}, function(err,vitems){
         if(vitems){
             // res.render("viewvisitor.ejs",{vrs:vitems});
@@ -323,12 +321,29 @@ app.get("/viewvisitor/:resiflname",function(req,res){
         // res.render("viewvisitor.ejs",{vrs:c});
         
     });
+}else{
+    res.redirect("/signin");
+}
 });
 
 
 
 app.get("/notice",function(req,res){
-    res.render("notice.ejs");
+
+    if(req.isAuthenticated()){
+        if(req.user.role==="admin"){
+        res.render("notice.ejs");
+        ;
+    }
+    else{
+        res.redirect("/notauth");
+    }
+}
+    // if(req.isAuthenticated()){
+    // res.render("notice.ejs");
+    // }else{{
+    //     res.redirect("/signin");
+    // }}
 });
 
 app.post("/notice", function(req,res){
@@ -352,18 +367,43 @@ app.post("/notice", function(req,res){
 
 
   app.get("/posts/:postName",function(req, res){
-    const requestedtitle = _.lowerCase(req.params.postName) ;
-    as.forEach(function(a){
-      let storedTitle=_.lowerCase(a.ntitle);
-      if(requestedtitle===storedTitle){
-        res.render("post.ejs",{postTitle1:a.ntitle,postbody1:a.nbody});
-      }
-    });
+      if(req.isAuthenticated())
+      {if(req.user.role==="admin"){
+                const requestedtitle = _.lowerCase(req.params.postName) ;
+                as.forEach(function(a){
+                let storedTitle=_.lowerCase(a.ntitle);
+                if(requestedtitle===storedTitle){
+                res.render("postadmin.ejs",{postTitle1:a.ntitle,postbody1:a.nbody});
+                }});
+    }else{
+        const requestedtitle = _.lowerCase(req.params.postName) ;
+         as.forEach(function(a){
+        let storedTitle=_.lowerCase(a.ntitle);
+            if(requestedtitle===storedTitle){
+                res.render("post.ejs",{postTitle1:a.ntitle,postbody1:a.nbody});
+                    }
+                    });
+                    
+                }}else{
+                    res.redirect("/signin");
+                    }
 });
 
-
 app.get("/announcement",function(req,res){
-    res.render("announcement.ejs");
+    if(req.isAuthenticated()){
+        if(req.user.role==="admin"){
+        res.render("announcement.ejs");
+        ;
+    }
+    else{
+        res.redirect("/notauth");
+    }
+}
+    // if(req.isAuthenticated()){
+    // res.render("announcement.ejs");
+    // }else{
+    //     res.redirect("/signin");
+    // }
 });
 
 
@@ -379,6 +419,56 @@ app.post("/announcement", function(req,res){
     // anns.push(ann);
     // res.redirect("/");
    });
+// app.get("/logout",function(req,res){
+//     req.logout();
+//     res.redirect("/");
+// });
+
+app.get('/logout', function(req, res, next) {
+    req.logout(function(err) {
+      if (err) { return next(err); }
+      res.redirect("/");
+    });
+  });
+
+app.post("/delete",function(req,res){
+    
+    Notice.deleteOne(
+        {ntitle:req.body.deletereq},
+        function(err){
+            if (!err){
+                res.redirect("/");
+            }else{
+                res.send(err);
+            }
+        })
+})
+
+// app.get("/noticeupdate",function(req,res){
+//     res.render("noticeupdate.ejs");
+
+// })
+
+// app.post("/noticeupdate",function(req,res){
+//     app.post("/notice", function(req,res){
+//         const publishcontent=req.body.pcontent;
+//         const publishpost=req.body.text1;
+//         const not= new Notice({
+//             ntitle:publishcontent,
+//             nbody:publishpost
+//         });
+//         not.save();
+//         res.redirect("/");
+        
+        
+//         // const post={title:publishcontent,
+//         //           body:publishpost};
+//         // posts.push(post);
+//         // res.redirect("/");
+      
+      
+//       });
+// })
 
 app.listen(3000, function(req,res){
     console.log("server is running on port 3000");

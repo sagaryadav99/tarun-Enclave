@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarun Enclave: Notices</title>
+    <title>Tarun Enclave: Visitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,32 +15,24 @@
     <link rel="stylesheet" href="css/complaint.css">
 
 </head>
-<body style=" display: flex;
-align-items: center;
-padding-top: 90px;
-padding-bottom: 40px;
-background-color:#697DC2;">
-    <%- include ("partials/navbar") -%>
-    <section id="view complaint">
-        
-        <div class="viewc" style="width: 100%;
-        max-width: 90%;
-        padding: 20px;
-        margin: 100px 50px;
-        background-color: #fff;
-        border-radius: 5px;
-        box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.308);">
+<body>
+  <%- include ("partials/navbar") -%>
+    <div class="form-signin">
+        <form action="/noticeupdate" method="post">
+            <div class="form-group">
             
-   
-   <form action="/delete" method="post">
-   <h2><%= postTitle1 %></h2>
-   <p><%= postbody1 %> </p>
-    
-   <!-- <button type="submit" class="btn btn-danger" name="deletereq" value="<%= postTitle1 %>">Delete</button> -->
-    
-        <a class="btn btn-primary" href="/" role="button">home</a>
-   </form>
+            <label> Notice Title</label>
+            <input type="text"  class="form-control" name="pcontent">
+            
+            <label>Notice body</label>
+            <textarea class="form-control" name="text1" cols="30" rows="5"></textarea>
+            
+            </div>
+            <button  class="btn btn-primary" type="submit" name="button">Send</button>
+            <!-- <p><%= post.ntitle %>: <%= post.nbody.substring(0,100) + "..." %><a href="/noticeupdate/<%= post.ntitle %>">Read more</a></p> -->
+            <!-- <a class="btn btn-info" href="/noticeupdate/<%= post.ntitle %>" role="button">Update</a>
+        </form> -->
 
-        </div>
-    </section>
+    </div>
 </body>
+    
