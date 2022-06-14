@@ -1,5 +1,5 @@
 function getBotResponse(input) {
-    //rock paper scissors
+    
     if (input == "stone") {
         return "paper";
     } else if (input == "paper") {
@@ -14,6 +14,6 @@ function getBotResponse(input) {
     } else if (input == "bye") {
         return "Talk to you later!";
     } else {
-        return "Try asking something else!";
+        return "We have recorded your query admin will reply shortly";
     }
 }

@@ -2,41 +2,61 @@ const express=require("express");
 const bodyParser=require("body-parser");
 const ejs=require("ejs");
 const _ =require("lodash");
-const replaceStr = require("./public/javascript/javascript.js");
+// const replaceStr = require("./public/javascript/javascript.js");
 const mongoose=require("mongoose");
 const session=require("express-session");
 const passport=require("passport");
 const passportLocalMongoose=require("passport-local-mongoose");
-
+const req = require("express/lib/request");
+const res = require("express/lib/response");
+const razorpay=require("razorpay");
+var instance = new razorpay({
+    key_id: 'rzp_test_Q0aUfFVrFy24bS',
+    key_secret: 'nhT8Kmrx67tNSogRm9btHVAx',
+  });
 
 const app=express();
-
-const arrs=[];
-const vrs=[];
-// const posts=[];
-// const anns=[];
-// const founditems=[];
-// const foundnotice=[];
 let as=[];
 let b=[];
 let c=[];
-
+let f=[];
 
 app.set("view engine", "ejs");
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
-
 app.use(session({
     secret: "ourlittlesecret",
     resave: false,
     saveUninitialized: false
 }));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
 mongoose.connect("mongodb://localhost:27017/TarunEnclaveDB");
+
+const comSchema={
+    cFname:String,
+    cLname:String,
+    cType:[String],
+    cHouseNumber:Number,
+    cFloorNumber:String,
+    cDate:Date,
+    cDescription:String
+};
+
+const Complaint=mongoose.model("Complaint",comSchema);
+
+const buySchema={
+    bFname:String,
+    bLname:String,
+    bHouseNumber:Number,
+    bFloorNumber:String,
+    bPhoneNumber:Number,
+    bDate:Date,
+    bDescription:String
+};
+
+const Buy=mongoose.model("Buy",buySchema);
 
 const userSchema=new mongoose.Schema({
     fname:String,
@@ -46,25 +66,19 @@ const userSchema=new mongoose.Schema({
     Floor_number:String,
     email:String,
     password:String,
-    role:String
+    role:String,
+    complaint:comSchema,
+    due:Number
     
 });
-
-
-
 
 userSchema.plugin(passportLocalMongoose);
 
 const User= new mongoose.model("User",userSchema);
 
-
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
-
-
-
-
 
 const annSchema={
     abody:  String
@@ -92,20 +106,10 @@ const visiSchema={
 
 const Visitor=mongoose.model("Visitor",visiSchema);
 
-const comSchema={
-    cFname:String,
-    cLname:String,
-    cType:String,
-    cHouseNumber:Number,
-    cFloorNumber:String,
-    cDate:Date,
-    cDescription:String
-};
-
-const Complaint=mongoose.model("Complaint",comSchema);
 
 
 app.get("/", function(req,res){
+    
 
     if(req.isAuthenticated()){
     
@@ -114,32 +118,15 @@ app.get("/", function(req,res){
     
     as=founditems;
     
-    
-    // res.render("index.ejs",{posts:founditems});
-    
-    
     });
     Announcement.find({},function(err,foundannouncements){
         b=foundannouncements;
         });
-    
-    
-
     res.render("index.ejs",{posts:as,anns:b});
     }else{
         res.redirect("/signin");
     }
 
-    // Notice.find({},function(err,founditems){
-    //     res.render("index.ejs",{posts:founditems});
-    // });
-
-    // Notice.find({},function(err,foundnotices){
-    //     res.send({posts:foundnotices});
-    // });
-    // res.render("index.ejs");
-
-    //  res.render( "index.ejs",{posts:posts,anns:anns});
 });
 
 app.get("/signin", function(req,res){
@@ -148,16 +135,6 @@ app.get("/signin", function(req,res){
 app.get("/signup", function(req,res){
     res.render("signup.ejs")
 });
-
-// app.get("/adminsignup", function(req,res){
-//     res.render("adminsignup.ejs");
-// });
-
-// app.get("/adminlogin", function(req,res){
-//     res.render("adminlogin.ejs");
-// });
-
-
 
 app.post("/signin", function(req, res){
     const user=new User({
@@ -177,15 +154,6 @@ app.post("/signin", function(req, res){
 
 app.post("/signup",function(req,res){
 
-
-    // var registerUser=new User({fname:req.body.fname,lname:req.body.lname,gender:req.body.housenumber,Floor_number:req.body.Floor_number,username:req.body.username});
-    // registerUser.register(registerUser,req.body.password, function(err, user){
-    //     if(!err){
-    //         passport.authenticate("local")(req,res, function(){
-    //             res.redirect("/signin");
-    //         });
-    //     }
-    // });
     User.register({fname:req.body.fname,lname:req.body.lname,housenumber:req.body.housenumber,Floor_number:req.body.Floor_number,username:req.body.username,role:"user"}, req.body.password, function(err,user){
         if(err){
             console.log(err);
@@ -203,9 +171,6 @@ app.get("/notauth",function(req,res){
     res.render("notauth.ejs");
 })
 
-
-
-
 app.get("/complaint", function(req,res){
     if(req.isAuthenticated()){
     res.render("complaint.ejs")
@@ -222,12 +187,11 @@ app.get("/visitor", function(req,res){
     }
 });
 
-
 app.post("/complaint",function(req,res){
     
     const firstname=req.body.fname;
     const lastname=req.body.lname;
-    const ctype=JSON.stringify(replaceStr); 
+    const ctype=req.body.Complaint; 
     const housenumber=req.body.hnumber;
     const floornumber=req.body.Floor_number;
     const date=req.body.cdate;
@@ -240,18 +204,40 @@ app.post("/complaint",function(req,res){
                 cDate:date,
                 cDescription:description});
          com.save();
-        // arrs.push(arr1);
-        // Complaint.find({},function(err,fitems){
-        // res.render("viewcomplaint.ejs",{arrs:fitems});
-        // });
+         User.findByIdAndUpdate(req.user.id,{complaint:com},function(err,fuser){
+             if(err){
+                 console.log(err);
+             }
+         });
+       
+        
         res.redirect("/");
         
 });
+
+app.get("/mycomplaints", function(req,res){
+    if(req.isAuthenticated()){
+        User.findById(req.user.id,function(err,coms){
+            if(err){
+                console.log(err);
+            }else{
+                // res.render("mycomplaints.ejs",{complaints:coms.complaint})
+                f=[coms.complaint];
+                res.render("mycomplaints.ejs",{posts:f});
+                // console.log(f);
+                
+            }
+        })
+    }
+})
+
 app.get("/viewcomplaint", function(req,res){
     if(req.isAuthenticated()){
         if(req.user.role==="admin"){
             Complaint.find({},function(err,fitems){
             res.render("viewcomplaint.ejs",{arrs:fitems})
+            // console.log(fitems);
+            
             });
         }
         else{
@@ -259,11 +245,7 @@ app.get("/viewcomplaint", function(req,res){
         }
 }}
         );
-    // Complaint.find({},function(err,fitems){
-    //     res.render("viewcomplaint.ejs",{arrs:fitems})
-
-
-
+    
 app.post("/visitor",function(req,res){
     const vfname=req.body.visifname;
     const vlname=req.body.visilname;
@@ -285,11 +267,6 @@ app.post("/visitor",function(req,res){
     });
     vis.save();
     res.redirect("/");
-    // Visitor.find({},function(err,vitems){
-    //     res.render("viewvisitor.ejs",{vrs:vitems})
-    // });
-    // vrs.push(arr2);
-    // res.render("viewvisitor.ejs",{vrs:vrs})
 });
 
 app.get("/viewvisitor", function(req,res){
@@ -302,15 +279,13 @@ app.get("/viewvisitor", function(req,res){
     else{
         res.redirect("/notauth");
     }
-}
-    
-});
+}});
 
 app.get("/viewvisitor/:resiflname",function(req,res){
     if(req.isAuthenticated()){
     Visitor.find({vresifname:req.params.resiflname}, function(err,vitems){
         if(vitems){
-            // res.render("viewvisitor.ejs",{vrs:vitems});
+            
             c=vitems;
             res.send(c);
             
@@ -318,7 +293,7 @@ app.get("/viewvisitor/:resiflname",function(req,res){
         }else{
             res.send("no match found");
         }
-        // res.render("viewvisitor.ejs",{vrs:c});
+        
         
     });
 }else{
@@ -329,7 +304,6 @@ app.get("/viewvisitor/:resiflname",function(req,res){
 app.get("/chatbot",function(req,res){
     res.render("chatbot.ejs");
 })
-
 
 app.get("/notice",function(req,res){
 
@@ -342,13 +316,8 @@ app.get("/notice",function(req,res){
         res.redirect("/notauth");
     }
 }
-    // if(req.isAuthenticated()){
-    // res.render("notice.ejs");
-    // }else{{
-    //     res.redirect("/signin");
-    // }}
+   
 });
-
 app.post("/notice", function(req,res){
     const publishcontent=req.body.pcontent;
     const publishpost=req.body.text1;
@@ -358,18 +327,9 @@ app.post("/notice", function(req,res){
     });
     not.save();
     res.redirect("/");
-    
-    
-    // const post={title:publishcontent,
-    //           body:publishpost};
-    // posts.push(post);
-    // res.redirect("/");
-  
-  
-  });
+    });
 
-
-  app.get("/posts/:postName",function(req, res){
+    app.get("/posts/:postName",function(req, res){
       if(req.isAuthenticated())
       {if(req.user.role==="admin"){
                 const requestedtitle = _.lowerCase(req.params.postName) ;
@@ -391,7 +351,6 @@ app.post("/notice", function(req,res){
                     res.redirect("/signin");
                     }
 });
-
 app.get("/announcement",function(req,res){
     if(req.isAuthenticated()){
         if(req.user.role==="admin"){
@@ -402,14 +361,7 @@ app.get("/announcement",function(req,res){
         res.redirect("/notauth");
     }
 }
-    // if(req.isAuthenticated()){
-    // res.render("announcement.ejs");
-    // }else{
-    //     res.redirect("/signin");
-    // }
 });
-
-
 app.post("/announcement", function(req,res){
     const anncontent=req.body.acontent;
     const ann= new Announcement({
@@ -417,15 +369,7 @@ app.post("/announcement", function(req,res){
     });
     ann.save()
     res.redirect("/");
-    
-    // const ann={title:anncontent}
-    // anns.push(ann);
-    // res.redirect("/");
-   });
-// app.get("/logout",function(req,res){
-//     req.logout();
-//     res.redirect("/");
-// });
+    });
 
 app.get('/logout', function(req, res, next) {
     req.logout(function(err) {
@@ -447,31 +391,117 @@ app.post("/delete",function(req,res){
         })
 })
 
-// app.get("/noticeupdate",function(req,res){
-//     res.render("noticeupdate.ejs");
+app.get("/buysell",function(req,res){
+    if(req.isAuthenticated()){
+    res.render("buysell.ejs");
+    }
+});
 
-// })
+app.post("/buysell",function(req,res){
+    const firstname=req.body.fname;
+    const lastname=req.body.lname; 
+    const housenumber=req.body.hnumber;
+    const floornumber=req.body.Floor_number;
+    const phonenumber=req.body.pnumber
+    const date=req.body.cdate;
+    const description=req.body.cdesc;
+    const buy=new Buy({bFname:firstname,
+                bLname:lastname,
+                bHouseNumber:housenumber,
+                bFloorNumber:floornumber,
+                bPhoneNumber:phonenumber,
+                bDate:date,
+                bDescription:description});
+         buy.save();
+         res.redirect("/");
 
-// app.post("/noticeupdate",function(req,res){
-//     app.post("/notice", function(req,res){
-//         const publishcontent=req.body.pcontent;
-//         const publishpost=req.body.text1;
-//         const not= new Notice({
-//             ntitle:publishcontent,
-//             nbody:publishpost
-//         });
-//         not.save();
-//         res.redirect("/");
+});
+app.get("/viewlisting", function(req,res){
+    if(req.isAuthenticated()){
+        
+            Buy.find({},function(err,fitems){
+            res.render("viewlisting.ejs",{arrs:fitems})
+            // console.log(fitems);
+            
+            });
         
         
-//         // const post={title:publishcontent,
-//         //           body:publishpost};
-//         // posts.push(post);
-//         // res.redirect("/");
-      
-      
-//       });
+            
+        }else{
+        res.redirect("/notauth");
+        }
+    });
+
+
+app.get("/users", function(req,res){
+    if(req.isAuthenticated()){
+        if(req.user.role==="admin"){
+            User.find({},function(err,rusers){
+                res.render("users.ejs",{arrs:rusers})
+            });
+    }
+    else{
+        res.redirect("/notauth");
+    }
+}
+
+})
+
+
+app.get("/updateusers/:id",function(req,res){
+    User.findById(req.params.id,function(err,fuser){
+        if(err){
+            console.log(err);
+        }else{
+        res.render("updateusers.ejs",{user:fuser});
+        }
+    })
+    
+});
+
+app.post("/updateusers",function(req,res){
+    const amt=req.body.amount;
+    User.findByIdAndUpdate(req.body.uid,{due:amt},function(err){
+        if(err){
+            console.log(err);
+        }else{
+            res.redirect("/users");
+        }
+    })
+})
+
+app.get("/dues", function(req,res){
+    if(req.isAuthenticated()){
+        User.findById(req.user.id,function(err,due){
+            if(err){
+                console.log(err);
+            }else{
+                // res.render("mycomplaints.ejs",{complaints:coms.complaint})
+                at=[due]
+                res.render("dues.ejs",{posts:at});
+                // console.log(f);
+                
+            }
+        })
+    }
+})
+
+
+
+
+// app.post("/create/orderId",function(req,res){
+//     console.log("create orderID request",req.body);
+//     var options={
+//         amount:req.user.due,
+//         currency:"INR",
+//         receipt:"rcp1"
+//     };
+//     instance.orders.create(options, function(err, order){
+//         console.log(order);
+//         res.send({orderId: order.id});
+//     });
 // })
+
 
 app.listen(3000, function(req,res){
     console.log("server is running on port 3000");
